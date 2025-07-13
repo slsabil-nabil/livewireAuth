@@ -5,15 +5,18 @@
     $colors = ThemeService::getCurrentThemeColors($themeName);
 @endphp
 <div>
+    <x-page-title title="القوائم الديناميكية" align="right">
+    إدارة القوائم الخاصة بالوكالة واضافة قوائم والتحكم في البنود والبنود الفرعية
+</x-page-title>
+
 <div class="space-y-6">
     <!-- قسم إضافة قائمة جديدة (للسوبر أدمن فقط) -->
     @if (auth()->user()?->hasRole('super-admin'))
         <div class="bg-white p-6 rounded-xl shadow-md">
-            <h2 class="text-xl font-bold text-center mb-4 text-black">إضافة قائمة جديدة</h2>
             <form wire:submit.prevent="saveList" class="flex gap-4 items-end">
                 <div class="flex-1 relative">
-                    <input type="text" wire:model.defer="newListName" 
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none bg-white text-xs peer" 
+                    <input type="text" wire:model.defer="newListName"
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none bg-white text-xs peer"
                            placeholder="اسم القائمة">
                     <label class="absolute right-3 -top-2.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:-top-2.5 peer-focus:text-xs">
                         اسم القائمة

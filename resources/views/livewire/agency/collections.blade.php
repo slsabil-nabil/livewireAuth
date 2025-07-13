@@ -1,22 +1,21 @@
+<div>
+    @php
+        use App\Services\ThemeService;
+        $themeName = strtolower(Auth::user()?->agency?->theme_color ?? 'emerald');
+        $colors = ThemeService::getCurrentThemeColors($themeName);
 
-@php
-    use App\Services\ThemeService;
-    $themeName = strtolower(Auth::user()?->agency?->theme_color ?? 'emerald');
-    $colors = ThemeService::getCurrentThemeColors($themeName);
+        $fieldClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-[rgb(var(--primary-500))] focus:border-[rgb(var(--primary-500))] focus:outline-none bg-white text-xs peer';
+        $labelClass = 'absolute right-3 -top-2.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-[rgb(var(--primary-600))]';
+        $containerClass = 'relative mt-1';
+    @endphp
 
-    $fieldClass = 'w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-[rgb(var(--primary-500))] focus:border-[rgb(var(--primary-500))] focus:outline-none bg-white text-xs peer';
-    $labelClass = 'absolute right-3 -top-2.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-[rgb(var(--primary-600))]';
-    $containerClass = 'relative mt-1';
-@endphp
-
-<div class="space-y-6">
-    <!-- عنوان الصفحة -->
-    <h2 class="text-xl font-bold text-gray-700 border-b pb-2" style="color: rgb(var(--primary-700));">
-        عرض التحصيلات
-    </h2>
+    <!-- العنوان -->
+    <x-page-title title="عرض التحصيلات">
+        قائمة توضح المبالغ المستحقة حسب المبيعات والعميل ونوع المديونية
+    </x-page-title>
 
     <!-- الفلاتر -->
-    <div class="bg-white rounded-xl shadow-md p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl shadow-md p-4 grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="{{ $containerClass }}">
             <input type="text" wire:model.live="search" class="{{ $fieldClass }}" placeholder="اسم العميل أو المستفيد">
             <label class="{{ $labelClass }}">بحث</label>
@@ -78,38 +77,29 @@
             </thead>
             <tbody class="text-center text-xs divide-y divide-gray-100">
                 @forelse($sales as $index => $sale)
+                    @php
+                        $totalInvoice = $sale->usd_sell ?? 0;
+                        $paidFromSales = $sale->amount_received ?? 0;
+                        $paidFromCollections = $sale->collections->sum('amount');
+                        $paidTotal = $paidFromSales + $paidFromCollections;
+                        $remaining = $totalInvoice - $paidTotal;
+                        $debtAge = round(abs(now()->diffInDays($sale->sale_date, false)));
+                    @endphp
                     <tr>
                         <td class="px-2 py-2">{{ $loop->iteration }}</td>
                         <td class="px-2 py-2">{{ $sale->beneficiary_name ?? '-' }}</td>
-                       @php
-                            $totalInvoice = $sale->usd_sell ?? 0;
-                            $paidFromSales = $sale->amount_received ?? 0;
-                            $paidFromCollections = $sale->collections->sum('amount');
-                            $paidTotal = $paidFromSales + $paidFromCollections;
-                            $remaining = $totalInvoice - $paidTotal;
-                        @endphp
-
-                        <td class="px-2 py-2 font-bold text-red-600">
-                            {{ number_format($remaining, 2) }}
-                        </td>
-
+                        <td class="px-2 py-2 font-bold text-red-600">{{ number_format($remaining, 2) }}</td>
                         <td class="px-2 py-2">{{ optional($sale->collections->last())->payment_date ?? '-' }}</td>
-                        <td class="px-2 py-2">
-                            @php
-                                $debtAge = round(abs(now()->diffInDays($sale->sale_date, false)));
-                            @endphp
-                            {{ $debtAge }} يوم
-                        </td>
+                        <td class="px-2 py-2">{{ $debtAge }} يوم</td>
                         <td class="px-2 py-2">{{ optional($sale->collections->last()?->customerType)->label ?? '-' }}</td>
                         <td class="px-2 py-2">{{ optional($sale->collections->last()?->debtType)->label ?? '-' }}</td>
                         <td class="px-2 py-2">{{ optional($sale->collections->last()?->customerResponse)->label ?? '-' }}</td>
                         <td class="px-2 py-2">{{ optional($sale->collections->last()?->customerRelation)->label ?? '-' }}</td>
                         <td class="px-2 py-2">
-                         <a href="{{ route('agency.collection.details', $sale->id) }}"
-                            class="text-white text-xs px-3 py-1 bg-[rgb(var(--primary-500))] hover:bg-[rgb(var(--primary-600))] rounded-lg shadow">
+                            <a href="{{ route('agency.collection.details', $sale->id) }}"
+                                class="text-white text-xs px-3 py-1 bg-[rgb(var(--primary-500))] hover:bg-[rgb(var(--primary-600))] rounded-lg shadow">
                                 تفاصيل المديونية
                             </a>
-
                         </td>
                     </tr>
                 @empty

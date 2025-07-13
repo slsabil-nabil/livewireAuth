@@ -1,4 +1,7 @@
 <div x-data="sequenceManager()" x-init="init()" class="p-6 bg-gray-50 min-h-screen">
+<x-page-title title="تسلسل الموافقات">
+    إدارة تسلسل الموافقات داخل الوكالة – يمكنك إضافة وتعديل وعرض التسلسلات حسب الصلاحيات.
+</x-page-title>
 
     @can('sequences.create')
     <div class="mb-6">
